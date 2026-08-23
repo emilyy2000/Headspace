@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#fff8e8">
+  <title>Pixel Party — Quick classic games</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="home-body">
+  <main>
+    <div class="stat-pills">
+      <span class="wins-pill"><b id="home-wins">0</b> wins</span>
+      <a class="leader-pill" href="leaderboard.html">Leaderboard</a>
+      <a class="shop-pill" href="shop.html" title="Points are saved in this browser">Shop · <span id="home-points">0</span> pts</a>
+    </div>
+    <section class="hero">
+      <div class="hero-copy">
+        <h1>Pixel<br><span>Party.</span></h1>
+        <a class="primary-button" href="#games">Choose a game <span>→</span></a>
+      </div>
+    </section>
+
+    <section class="games-section" id="games">
+      <div class="section-heading">
+        <h2>Games</h2>
+      </div>
+      <div class="game-grid">
+        <article class="game-card card-yellow">
+          <div class="game-preview sudoku-preview">
+            <div class="preview-grid" aria-hidden="true"><span>8</span><span>3</span><span></span><span>4</span><span></span><span>6</span><span></span><span>2</span><span>7</span><span></span><span>9</span><span>6</span><span></span><span>5</span><span></span><span>4</span><span></span><span>1</span><span>4</span><span></span><span>7</span><span>2</span><span></span><span>3</span><span>6</span><span></span><span>8</span></div>
+            <a class="play-pop" href="sudoku.html"><span>▶</span> Play now</a>
+          </div>
+          <div class="card-meta"><h3>Sudoku</h3></div>
+        </article>
+
+        <article class="game-card card-blue">
+          <div class="game-preview mine-preview">
+            <div class="mine-grid"><i></i><i>1</i><i>1</i><i>1</i><i></i><i>1</i><i>⚑</i><i>2</i><i>1</i><i></i><i>1</i><i>2</i><i>⚑</i><i>1</i><i></i><i></i><i>1</i><i>1</i><i>1</i><i></i></div>
+            <a class="play-pop" href="minesweeper.html"><span>▶</span> Play now</a>
+          </div>
+          <div class="card-meta"><h3>Minesweeper</h3></div>
+        </article>
+
+        <article class="game-card card-coral">
+          <div class="game-preview ship-preview">
+            <div class="sea"><span class="ship ship-a"></span><span class="ship ship-b"></span><i class="splash s1">×</i><i class="splash s2">×</i><i class="splash s3">×</i></div>
+            <a class="play-pop" href="battleships.html"><span>▶</span> Play now</a>
+          </div>
+          <div class="card-meta"><h3>Battleships</h3></div>
+        </article>
+        <article class="game-card card-snake">
+          <div class="game-preview snake-preview">
+            <div class="snake-art" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><b></b></div>
+            <a class="play-pop" href="snake.html"><span>▶</span> Play now</a>
+          </div>
+          <div class="card-meta"><h3>Snake</h3></div>
+        </article>
+        <article class="game-card card-2048">
+          <div class="game-preview twenty-preview">
+            <div class="twenty-art" aria-hidden="true"><i>2</i><i>4</i><i>8</i><i>16</i><i>32</i><i>64</i><i>128</i><i>256</i><i>512</i></div>
+            <a class="play-pop" href="2048.html"><span>▶</span> Play now</a>
+          </div>
+          <div class="card-meta"><h3>2048</h3></div>
+        </article>
+        <article class="game-card card-tetris">
+          <div class="game-preview tetris-preview">
+            <div class="tetris-art" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+            <a class="play-pop" href="tetris.html"><span>▶</span> Play now</a>
+          </div>
+          <div class="card-meta"><h3>Tetris</h3></div>
+        </article>
+        <article class="game-card mystery-card" id="mystery-card">
+          <div class="game-preview mystery-preview">
+            <div class="mystery-mark" aria-hidden="true">?</div>
+            <a class="play-pop mystery-link" href="memory.html"><span>▶</span> Play now</a>
+          </div>
+          <div class="card-meta"><h3 id="mystery-title">Mystery game</h3><span class="unlock-copy" id="unlock-copy">Win 5 games</span></div>
+        </article>
+      </div>
+    </section>
+  </main>
+  <footer class="creator-footer">Created by Emily ✦</footer>
+  <script src="games.js"></script><script>initHomeEconomy()</script>
+</body>
+</html>
