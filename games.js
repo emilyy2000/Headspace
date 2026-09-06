@@ -231,7 +231,7 @@ function showPage(name) {
   $(`#${name}`).classList.add('active');
   $('main').classList.toggle('subpage', name !== 'home');
   $$('nav button').forEach(button => button.classList.toggle('active', button.dataset.page === name));
-  $('#title').textContent = {home:'Good morning, Emily',activity:'Your money activity',payments:'Upcoming payments',payback:'Your pay-back checklist',goals:'Your savings goals'}[name];
+  $('#title').textContent = {home:'Good morning',activity:'Your money activity',payments:'Upcoming payments',payback:'Your pay-back checklist',goals:'Your savings goals'}[name];
   $('aside').classList.remove('open');
   window.scrollTo(0,0);
 }
