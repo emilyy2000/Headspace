@@ -1,86 +1,18 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#fff8e8">
-  <title>Pixel Party — Quick classic games</title>
-  <link rel="stylesheet" href="styles.css">
-</head>
-<body class="home-body">
-  <main>
-    <div class="stat-pills">
-      <span class="wins-pill"><b id="home-wins">0</b> wins</span>
-      <a class="leader-pill" href="leaderboard.html">Leaderboard</a>
-      <a class="shop-pill" href="shop.html" title="Points are saved in this browser">Shop · <span id="home-points">0</span> pts</a>
-    </div>
-    <section class="hero">
-      <div class="hero-copy">
-        <h1>Pixel<br><span>Party.</span></h1>
-        <a class="primary-button" href="#games">Choose a game <span>→</span></a>
-      </div>
-    </section>
-
-    <section class="games-section" id="games">
-      <div class="section-heading">
-        <h2>Games</h2>
-      </div>
-      <div class="game-grid">
-        <article class="game-card card-yellow">
-          <div class="game-preview sudoku-preview">
-            <div class="preview-grid" aria-hidden="true"><span>8</span><span>3</span><span></span><span>4</span><span></span><span>6</span><span></span><span>2</span><span>7</span><span></span><span>9</span><span>6</span><span></span><span>5</span><span></span><span>4</span><span></span><span>1</span><span>4</span><span></span><span>7</span><span>2</span><span></span><span>3</span><span>6</span><span></span><span>8</span></div>
-            <a class="play-pop" href="sudoku.html"><span>▶</span> Play now</a>
-          </div>
-          <div class="card-meta"><h3>Sudoku</h3></div>
-        </article>
-
-        <article class="game-card card-blue">
-          <div class="game-preview mine-preview">
-            <div class="mine-grid"><i></i><i>1</i><i>1</i><i>1</i><i></i><i>1</i><i>⚑</i><i>2</i><i>1</i><i></i><i>1</i><i>2</i><i>⚑</i><i>1</i><i></i><i></i><i>1</i><i>1</i><i>1</i><i></i></div>
-            <a class="play-pop" href="minesweeper.html"><span>▶</span> Play now</a>
-          </div>
-          <div class="card-meta"><h3>Minesweeper</h3></div>
-        </article>
-
-        <article class="game-card card-coral">
-          <div class="game-preview ship-preview">
-            <div class="sea"><span class="ship ship-a"></span><span class="ship ship-b"></span><i class="splash s1">×</i><i class="splash s2">×</i><i class="splash s3">×</i></div>
-            <a class="play-pop" href="battleships.html"><span>▶</span> Play now</a>
-          </div>
-          <div class="card-meta"><h3>Battleships</h3></div>
-        </article>
-        <article class="game-card card-snake">
-          <div class="game-preview snake-preview">
-            <div class="snake-art" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><b></b></div>
-            <a class="play-pop" href="snake.html"><span>▶</span> Play now</a>
-          </div>
-          <div class="card-meta"><h3>Snake</h3></div>
-        </article>
-        <article class="game-card card-2048">
-          <div class="game-preview twenty-preview">
-            <div class="twenty-art" aria-hidden="true"><i>2</i><i>4</i><i>8</i><i>16</i><i>32</i><i>64</i><i>128</i><i>256</i><i>512</i></div>
-            <a class="play-pop" href="2048.html"><span>▶</span> Play now</a>
-          </div>
-          <div class="card-meta"><h3>2048</h3></div>
-        </article>
-        <article class="game-card card-tetris">
-          <div class="game-preview tetris-preview">
-            <div class="tetris-art" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-            <a class="play-pop" href="tetris.html"><span>▶</span> Play now</a>
-          </div>
-          <div class="card-meta"><h3>Tetris</h3></div>
-        </article>
-        <article class="game-card mystery-card" id="mystery-card">
-          <div class="game-preview mystery-preview">
-            <div class="mystery-mark" aria-hidden="true">?</div>
-            <a class="play-pop mystery-link" href="memory.html"><span>▶</span> Play now</a>
-          </div>
-          <div class="card-meta"><h3 id="mystery-title">Mystery game</h3><span class="unlock-copy" id="unlock-copy">Win 5 games</span></div>
-        </article>
-      </div>
-    </section>
-  </main>
-  <footer class="creator-footer">Created by Emily ✦</footer>
-  <script src="games.js"></script><script>initHomeEconomy()</script>
-</body>
-</html>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Pocket — Your money, made simple</title><link rel="stylesheet" href="styles.css"></head><body>
+<aside><a class="brand">◖ pocket</a><nav><button class="active" data-page="home">⌂ Overview</button><button data-page="activity">↕ Activity</button><button data-page="payments">▣ Payments <b>3</b></button><button data-page="payback">✓ Pay back <b id="debtBadge">0</b></button><button data-page="goals">◇ Goals</button></nav><div class="profile"><i>EY</i><span><strong>Emily</strong><small>My account</small></span></div><button class="deleteData" id="deleteData">Delete my data</button></aside>
+<main><header><button id="menu">☰</button><div><small>SUNDAY, 30 AUGUST</small><h1 id="title">Good morning, Emily</h1></div><button class="primary" id="addIncome">＋ Add money</button></header>
+<section class="page active" id="home"><div class="summary"><article class="balance"><div class="spread"><div><p>Available balance</p><h2 id="balance">£486.20</h2></div><em>↗ £42.00 this month</em></div><footer><div><small>● MONEY IN</small><strong id="moneyIn"></strong></div><div><small>● MONEY OUT</small><strong id="moneyOut"></strong></div><button id="quickAdd">＋</button></footer></article><article class="budget"><div><div class="budgetLabel"><label>WEEKLY BUDGET</label><button id="setBudget">Edit</button></div><h3><span id="spent"></span> <small>of <span id="weeklyLimit">£60.00</span></small></h3><mark id="status">On track</mark></div><div class="ring" id="ring"><span><strong id="left"></strong><small>left</small></span></div><p id="tip">You can spend about £5.55 a day until Sunday.</p></article></div>
+<div class="columns"><div class="overview-optional" aria-hidden="true"><article class="panel"><div class="heading"><div><label>SPENDING THIS WEEK</label><h3>Where your money went</h3></div><select><option>This week</option><option>Last week</option></select></div><div class="chart"><div class="donut"><span><strong id="total"></strong><small>Total spent</small></span></div><div id="cats" class="cats"></div></div></article><article class="panel"><div class="heading"><div><label>LATEST ACTIVITY</label><h3>Recent transactions</h3></div><button class="link" data-go="activity">View all →</button></div><div id="recent"></div></article></div>
+<div class="overview-core"><article class="panel"><div class="heading"><div><label>COMING UP</label><h3>Payments</h3></div><button class="link" data-go="payments">See all →</button></div><div id="upcoming"></div><div class="due"><span>Upcoming payment total</span><strong>£24.98</strong></div><div class="comingDivider"><span>PAY BACKS</span><button class="link" data-go="payback">View all →</button></div><div id="upcomingDebts"></div></article><article class="panel"><div class="heading"><div><label>YOUR GOALS</label><h3>Saving up for</h3></div><button class="link" data-go="goals">See all →</button></div><div id="goalList"></div></article><article class="nudge" id="nudge"><b>!</b><span><strong>A little heads-up</strong><small>You spent £8 more on snacks than last week.</small></span><button>×</button></article></div></div></section>
+<section class="page sub" id="activity"><label>EVERY POUND, IN ONE PLACE</label><h2>Activity</h2><p>See what came in and where it went.</p><article class="panel"><div class="heading"><h3>All transactions</h3><button class="primary" id="addExpense">＋ Add</button></div><div id="all"></div></article></section>
+<section class="page sub" id="payments"><div class="subHead"><div><label>NO MORE SURPRISE CHARGES</label><h2>Payments</h2><p>Everything due soon, clearly laid out.</p></div><button class="primary" id="newPayment">＋ Add payment</button></div><div id="paymentCards"></div></section>
+<section class="page sub" id="payback"><div class="subHead"><div><label>KEEP YOUR PROMISES IN SIGHT</label><h2>Pay-back checklist</h2><p>Keep track of what you owe and tick it off when it is paid.</p></div><button class="primary" id="newDebt">＋ Add item</button></div><article class="debtSummary"><div><small>STILL TO PAY</small><strong id="debtTotal">£0.00</strong></div><span id="debtProgress">Nothing outstanding</span></article><div id="debtList"></div></section>
+<section class="page sub" id="goals"><div class="subHead"><div><label>SOMETHING WORTH WAITING FOR</label><h2>Goals</h2><p>Watch your savings get closer to the finish line.</p></div><button class="primary" id="newGoal">＋ New goal</button></div><div id="goalCards"></div></section></main>
+<div class="backdrop hidden" id="modal"><form><button type="button" class="close">×</button><label>KEEP YOUR BALANCE UP TO DATE</label><h2>Add a purchase</h2><div class="toggle"><button type="button" class="active" data-type="expense">I spent</button><button type="button" data-type="income">I earned</button></div><label>AMOUNT<div class="amount">£ <input id="amount" type="number" min=".01" step=".01" placeholder="0.00" required></div></label><label><span id="noteLabel">WHAT WAS IT FOR?</span><input id="note" placeholder="e.g. Cinema ticket" maxlength="40" required></label><label id="categoryField">CATEGORY<select id="category"><option>Fun</option><option>Food & drink</option><option>Shopping</option><option>Transport</option><option>Other</option></select></label><button class="primary save" id="saveActivity">Save to Pocket</button><button type="button" class="deleteFromEdit hidden" id="deleteFromEdit">Delete activity</button></form></div>
+<div class="backdrop hidden" id="budgetModal"><form id="budgetForm"><button type="button" class="close" data-close="budgetModal">×</button><label>PLAN YOUR WEEK</label><h2>Set weekly budget</h2><p>Choose the most you want to spend this week. Staying below it leaves more money for your savings goals.</p><label>WEEKLY SPENDING LIMIT<div class="amount">£ <input id="budgetAmount" type="number" min="1" step=".01" required></div></label><button class="primary save">Save weekly budget</button></form></div>
+<div class="backdrop hidden" id="deleteActivityModal"><section class="deleteDialog"><span class="warningIcon">!</span><button type="button" class="close" data-close="deleteActivityModal">×</button><label>DELETE ACTIVITY</label><h2>Remove this activity?</h2><p id="deleteActivityName"></p><p>Your balance and weekly spending will update immediately.</p><div class="deleteActions"><button type="button" class="cancelDelete" data-close="deleteActivityModal">Keep it</button><button type="button" class="confirmDelete" id="confirmActivityDelete">Delete activity</button></div></section></div>
+<div class="backdrop hidden" id="paymentModal"><form id="paymentForm"><button type="button" class="close" data-close="paymentModal">×</button><label>PLAN AHEAD</label><h2>Add upcoming payment</h2><label>PAYMENT NAME<input id="paymentName" placeholder="e.g. Music subscription" required></label><label>AMOUNT<div class="amount">£ <input id="paymentAmount" type="number" min=".01" step=".01" required></div></label><div class="formRow"><label>NEXT PAYMENT<input id="paymentDate" type="date" required></label><label>HOW OFTEN?<select id="paymentFrequency"><option>Every week</option><option>Every 2 weeks</option><option selected>Every month</option><option>Every 3 months</option><option>Every year</option><option>One time</option></select></label></div><button class="primary save" id="savePayment">Save payment</button></form></div>
+<div class="backdrop hidden" id="goalModal"><form id="goalForm"><button type="button" class="close" data-close="goalModal">×</button><label>START SAVING</label><h2>Create a goal</h2><label>WHAT ARE YOU SAVING FOR?<input id="goalName" placeholder="e.g. New bike" required></label><div class="formRow"><label>TARGET AMOUNT<div class="amount">£ <input id="goalTarget" type="number" min="1" step=".01" required></div></label><label>ALREADY SAVED<div class="amount">£ <input id="goalSaved" type="number" min="0" step=".01" value="0" required></div></label></div><button class="primary save" id="saveGoal">Create goal</button></form></div>
+<div class="backdrop hidden" id="depositModal"><form id="depositForm"><button type="button" class="close" data-close="depositModal">×</button><label>GET CLOSER</label><h2>Add to goal</h2><p id="depositGoalName"></p><label>HOW MUCH?<div class="amount">£ <input id="depositAmount" type="number" min=".01" step=".01" required></div></label><button class="primary save">Add savings</button></form></div>
+<div class="backdrop hidden" id="debtModal"><form id="debtForm"><button type="button" class="close" data-close="debtModal">×</button><label>ADD TO YOUR CHECKLIST</label><h2>What do you need to pay back?</h2><label>WHO DO YOU OWE?<input id="debtPerson" placeholder="e.g. Jordan" maxlength="40" required></label><label>WHAT IS IT FOR?<input id="debtReason" placeholder="e.g. Cinema ticket" maxlength="50" required></label><div class="formRow"><label>HOW MUCH?<div class="amount">£ <input id="debtAmount" type="number" min=".01" step=".01" required></div></label><label>PAY BACK BY<input id="debtDate" type="date" required></label></div><button class="primary save" id="saveDebt">Add to checklist</button></form></div>
+<div class="backdrop hidden" id="deleteModal"><section class="deleteDialog"><span class="warningIcon">!</span><button type="button" class="close" data-close="deleteModal">×</button><label>DELETE MY DATA</label><h2>Start over with an empty Pocket?</h2><p>This permanently removes all of your activity, payments, pay-back items, and savings goals stored in this browser.</p><div class="deleteActions"><button type="button" class="cancelDelete" data-close="deleteModal">Keep my data</button><button type="button" class="confirmDelete" id="confirmDelete">Yes, delete everything</button></div></section></div><div id="toast"></div><script src="games.js"></script></body></html>
