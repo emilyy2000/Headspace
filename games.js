@@ -1,332 +1,53 @@
-const $ = selector => document.querySelector(selector);
-const $$ = selector => [...document.querySelectorAll(selector)];
-const cash = value => `${value < 0 ? '-' : ''}£${Math.abs(value).toFixed(2)}`;
-const getData = (key, fallback) => {
-  try { return JSON.parse(localStorage.getItem(key)) ?? fallback; }
-  catch { return fallback; }
-};
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];let paper='blank',book=null,ideas=[],filter='all',drawing=false;const welcome=$('#welcomeView'),setup=$('#setupView'),notebook=$('#notebookView'),input=$('#ideaInput'),ideasEl=$('#ideas'),canvasWrap=$('#canvasWrap'),hint=$('#emptyHint'),toast=$('#toast');function show(v){[welcome,setup,notebook].forEach(x=>x.classList.add('hidden'));v.classList.remove('hidden')}function notify(t){toast.textContent=t;toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),2200)}function save(){localStorage.setItem('mossNotebook',JSON.stringify({book,ideas,paper}))}function renderRecent(){const raw=localStorage.getItem('mossNotebook');if(!raw){$('#recentWrap').classList.add('hidden');return}const d=JSON.parse(raw);$('#recentList').innerHTML=`<div class="recent-item" id="resume"><span class="paper-dot"></span><strong>${d.book||'Untitled ideas'}</strong><small>Continue writing →</small></div>`;$('#resume').onclick=()=>openBook(d)}function openBook(d){book=d.book||'Untitled ideas';ideas=d.ideas||[];paper=d.paper||'blank';$('#bookName').textContent=book;canvasWrap.classList.toggle('grid',paper==='grid');$('#paperDot').style.background=paper==='grid'?'#8eabb9':'#ea8d63';show(notebook);renderIdeas()}function renderIdeas(){ideasEl.innerHTML='';let shown=ideas.filter(x=>filter==='all'||(filter==='saved'&&x.saved)||(filter==='done'&&x.done));shown.forEach((x,i)=>{const el=document.createElement('article');el.className='idea '+(x.saved?'saved ':'')+(x.done?'done ':'')+(x.image?'image-card':'');el.style.left=(x.x||18+i*24)+'px';el.style.top=(x.y||24+i*28)+'px';el.innerHTML=x.image?`<img src="${x.image}"><p>${x.text||''}</p>`:`<p>${x.text}</p><div class="idea-foot"><span>${x.time||'just now'}</span><span class="idea-actions"><button data-act="save">${x.saved?'★':'☆'}</button><button data-act="done">${x.done?'↶':'✓'}</button><button data-act="delete">×</button></span></div>`;el.querySelectorAll('[data-act]').forEach(b=>b.onclick=()=>{const a=b.dataset.act;if(a==='delete')ideas=ideas.filter(y=>y!==x);if(a==='save')x.saved=!x.saved;if(a==='done')x.done=!x.done;save();renderIdeas()});ideasEl.appendChild(el)});hint.style.display=ideas.length?'none':'block';$('#ideaCount').textContent=`${ideas.length} thought${ideas.length===1?'':'s'}`}function addIdea(text,x,y,image){if(!text&&!image)return;ideas.push({text:text||'',x:x||28+Math.random()*180,y:y||24+Math.random()*120,time:'just now',saved:false,done:false,image});save();renderIdeas()}$('#startBtn').onclick=()=>show(setup);$('#backBtn').onclick=()=>show(welcome);$('#createBtn').onclick=()=>{book=$('#notebookName').value.trim()||'Untitled ideas';ideas=[];save();openBook({book,ideas,paper})};$('#exitBtn').onclick=()=>{renderRecent();show(welcome)};$$('.paper-card').forEach(b=>b.onclick=()=>{$$('.paper-card').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');paper=b.dataset.paper});function submit(){const v=input.value.trim();if(v){addIdea(v);input.value='';input.focus()}}$('#sendBtn').onclick=submit;input.onkeydown=e=>{if(e.key==='Enter')submit()};$('#addBtn').onclick=()=>input.focus();$$('.filter').forEach(b=>b.onclick=()=>{$$('.filter').forEach(x=>x.classList.remove('active'));b.classList.add('active');filter=b.dataset.filter;renderIdeas()});$$('.tool').forEach(b=>b.onclick=()=>{const t=b.dataset.tool;if(!t)return;$$('.tool').forEach(x=>x.classList.remove('active'));b.classList.add('active');if(t==='text')input.focus();if(t==='draw'){canvasWrap.classList.add('draw-mode');drawing=true}else{canvasWrap.classList.remove('draw-mode');drawing=false}if(t==='image')$('#imageInput').click();if(t==='voice')notify('Voice memos are ready for your next thought')});$('#imageInput').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>addIdea('Image note',40,30,r.result);r.readAsDataURL(f)};$('#clearBtn').onclick=()=>{if(confirm('Clear all thoughts from this page?')){ideas=[];save();renderIdeas()}};$('#shareBtn').onclick=()=>{navigator.clipboard?.writeText(location.href);notify('Notebook link copied')};$('#helpBtn').onclick=()=>notify('Choose a page, then add ideas as they arrive.');const cv=$('#drawCanvas'),ctx=cv.getContext('2d');function resize(){cv.width=cv.clientWidth*devicePixelRatio;cv.height=cv.clientHeight*devicePixelRatio;ctx.scale(devicePixelRatio,devicePixelRatio)}resize();addEventListener('resize',resize);cv.onpointerdown=e=>{if(!drawing)return;ctx.beginPath();ctx.moveTo(e.offsetX,e.offsetY);cv.setPointerCapture(e.pointerId)};cv.onpointermove=e=>{if(!drawing||e.buttons!==1)return;ctx.lineTo(e.offsetX,e.offsetY);ctx.strokeStyle='#52655d';ctx.lineWidth=2;ctx.lineCap='round';ctx.stroke()};cv.onpointerup=()=>{if(drawing)notify('Sketch saved on this page')};renderRecent();
+const originalRenderIdeas=renderIdeas;renderIdeas=function(){originalRenderIdeas();ideasEl.querySelectorAll('.idea').forEach((el,i)=>{const data=ideas.filter(x=>filter==='all'||(filter==='saved'&&x.saved)||(filter==='done'&&x.done))[i];if(!data)return;const handle=document.createElement('span');handle.className='resize-handle';el.appendChild(handle);el.onpointerdown=e=>{if(e.target===handle)return;const sx=e.clientX,sy=e.clientY,ox=data.x||el.offsetLeft,oy=data.y||el.offsetTop;el.classList.add('dragging');el.setPointerCapture(e.pointerId);const move=q=>{data.x=Math.max(0,ox+q.clientX-sx);data.y=Math.max(0,oy+q.clientY-sy);el.style.left=data.x+'px';el.style.top=data.y+'px'};const up=()=>{el.classList.remove('dragging');el.releasePointerCapture(e.pointerId);el.removeEventListener('pointermove',move);el.removeEventListener('pointerup',up);save()};el.addEventListener('pointermove',move);el.addEventListener('pointerup',up)};handle.onpointerdown=e=>{e.stopPropagation();const sw=e.clientX,sh=e.clientY,ow=el.offsetWidth,oh=el.offsetHeight;el.classList.add('resizing');el.setPointerCapture(e.pointerId);const move=q=>{const w=Math.max(140,ow+q.clientX-sw),h=Math.max(80,oh+q.clientY-sh);data.w=w;data.h=h;el.style.width=w+'px';el.style.minHeight=h+'px'};const up=()=>{el.classList.remove('resizing');el.releasePointerCapture(e.pointerId);el.removeEventListener('pointermove',move);el.removeEventListener('pointerup',up);save()};el.addEventListener('pointermove',move);el.addEventListener('pointerup',up)};if(data.w){el.style.width=data.w+'px';el.style.minHeight=data.h+'px'}})};renderIdeas();
+const renderWithEdit=renderIdeas;renderIdeas=function(){renderWithEdit();ideasEl.querySelectorAll('.idea').forEach((el,i)=>{const visible=ideas.filter(x=>filter==='all'||(filter==='saved'&&x.saved)||(filter==='done'&&x.done));const data=visible[i];if(!data)return;const p=el.querySelector('p');if(!p)return;const edit=document.createElement('button');edit.dataset.act='edit';edit.textContent='✎';edit.title='Edit note';const actions=el.querySelector('.idea-actions');if(actions)actions.prepend(edit);const editNote=()=>{if(el.querySelector('textarea'))return;const area=document.createElement('textarea');area.value=data.text;area.rows=3;area.style.cssText='width:100%;border:0;border-bottom:1px solid #8d8064;background:transparent;outline:none;font:17px/1.35 Georgia;resize:vertical;color:inherit';p.replaceWith(area);area.focus();area.select();const finish=()=>{data.text=area.value.trim()||data.text;save();renderIdeas()};area.onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();finish()}if(e.key==='Escape'){renderIdeas()}};area.onblur=finish};edit.onclick=editNote;p.ondblclick=editNote})};renderIdeas();
+const layerMenu=document.createElement('div');layerMenu.className='context-menu';layerMenu.innerHTML='<button data-layer="front">Bring to front</button><button data-layer="forward">Move forward</button><button data-layer="back">Move back</button><button data-layer="backmost">Send to back</button>';layerMenu.style.display='none';document.body.appendChild(layerMenu);let menuTarget=null;document.addEventListener('click',()=>{layerMenu.style.display='none'});layerMenu.onclick=e=>{const action=e.target.dataset.layer;if(!action||!menuTarget)return;const current=ideas.indexOf(menuTarget);if(current<0)return;let target=current;if(action==='front')target=ideas.length-1;if(action==='backmost')target=0;if(action==='forward')target=Math.min(ideas.length-1,current+1);if(action==='back')target=Math.max(0,current-1);ideas.splice(current,1);ideas.splice(target,0,menuTarget);save();layerMenu.style.display='none';renderIdeas()};const priorRender=renderIdeas;renderIdeas=function(){priorRender();ideasEl.querySelectorAll('.idea').forEach((el,i)=>{const visible=ideas.filter(x=>filter==='all'||(filter==='saved'&&x.saved)||(filter==='done'&&x.done));const data=visible[i];if(!data)return;el.oncontextmenu=e=>{e.preventDefault();e.stopPropagation();menuTarget=data;layerMenu.style.left=Math.min(e.clientX,innerWidth-185)+'px';layerMenu.style.top=Math.min(e.clientY,innerHeight-170)+'px';layerMenu.style.display='block'}})};renderIdeas();
+$$('.tool').forEach(btn=>{btn.addEventListener('click',()=>{const mode=btn.dataset.tool;if(mode==='select'){drawing=false;canvasWrap.classList.remove('draw-mode');notify('Select mode — move or edit a note')}if(mode==='draw'){resize();drawing=true;canvasWrap.classList.add('draw-mode');notify('Draw mode — sketch anywhere on the page')}if(mode==='text'){drawing=false;canvasWrap.classList.remove('draw-mode');input.focus();notify('Text mode — type a thought below')}if(mode==='image'){drawing=false;canvasWrap.classList.remove('draw-mode');notify('Choose an image to place on the page')}if(mode==='voice'){drawing=false;canvasWrap.classList.remove('draw-mode');notify('Voice memo mode — recording is ready to connect')}})});window.addEventListener('resize',()=>{if(!notebook.classList.contains('hidden'))resize()});
+const renderImageCaptionEdit=renderIdeas;renderIdeas=function(){renderImageCaptionEdit();ideasEl.querySelectorAll('.image-card').forEach((el,i)=>{const visible=ideas.filter(x=>filter==='all'||(filter==='saved'&&x.saved)||(filter==='done'&&x.done));const data=visible[i];const caption=el.querySelector('p');if(!data||!caption)return;const edit=document.createElement('button');edit.className='caption-edit';edit.textContent='✎';edit.title='Edit caption';const editCaption=()=>{const value=prompt('Edit image caption',data.text||'Image note');if(value===null)return;data.text=value.trim()||'Image note';save();renderIdeas()};edit.onclick=editCaption;caption.ondblclick=editCaption;el.appendChild(edit)})};renderIdeas();
+$('#bookName').style.cursor='text';$('#bookName').title='Click to rename notebook';$('#bookName').addEventListener('click',()=>{const next=prompt('Rename notebook',book||$('#bookName').textContent);if(next===null)return;const clean=next.trim();if(!clean)return;book=clean;$('#bookName').textContent=clean;save();notify('Notebook renamed')});
+const renderControlSafe=renderIdeas;renderIdeas=function(){renderControlSafe();ideasEl.querySelectorAll('.idea').forEach(el=>{const drag=el.onpointerdown;el.onpointerdown=e=>{if(e.target.closest('button,textarea,.resize-handle'))return;drag(e)}})};renderIdeas();
 
-const cleared = localStorage.getItem('pocketCleared') === 'true';
+// Keep the sketch bitmap intact when the canvas is resized or tools change.
+const mossCanvasResize=resize;
+resize=function(){const snapshot=cv.width&&cv.height?cv.toDataURL():null;const width=cv.clientWidth;const height=cv.clientHeight;const ratio=window.devicePixelRatio||1;cv.width=Math.max(1,width*ratio);cv.height=Math.max(1,height*ratio);ctx.setTransform(ratio,0,0,ratio,0,0);if(snapshot){const image=new Image();image.onload=()=>ctx.drawImage(image,0,0,width,height);image.src=snapshot}};
+resize();
+let drawingMode='pen';
+const selectTool=document.querySelector('[data-tool="select"]');if(selectTool){selectTool.textContent='↖';selectTool.title='Select and move'}
+const penTool=document.querySelector('[data-tool="draw"]');if(penTool)penTool.title='Pen';
+const eraseTool=document.createElement('button');eraseTool.className='tool';eraseTool.dataset.tool='erase';eraseTool.title='Eraser';eraseTool.textContent='⌫';if(penTool)penTool.parentNode.insertBefore(eraseTool,penTool.nextSibling);
+const setSketchMode=(mode)=>{drawingMode=mode;drawing=true;canvasWrap.classList.add('draw-mode');$$('.tool').forEach(tool=>tool.classList.toggle('active',tool.dataset.tool===mode))};
+penTool?.addEventListener('click',()=>setSketchMode('draw'));eraseTool.addEventListener('click',()=>{setSketchMode('erase');notify('Eraser mode — rub out a sketch')});
+cv.onpointerdown=e=>{if(!drawing)return;ctx.beginPath();ctx.moveTo(e.offsetX,e.offsetY);cv.setPointerCapture(e.pointerId)};
+cv.onpointermove=e=>{if(!drawing||e.buttons!==1)return;ctx.globalCompositeOperation=drawingMode==='erase'?'destination-out':'source-over';ctx.strokeStyle=drawingMode==='erase'?'rgba(0,0,0,1)':'#52655d';ctx.lineWidth=drawingMode==='erase'?18:2;ctx.lineCap='round';ctx.lineTo(e.offsetX,e.offsetY);ctx.stroke()};
+cv.onpointerup=()=>{if(drawing){ctx.globalCompositeOperation='source-over';notify(drawingMode==='erase'?'Sketch updated':'Sketch saved on this page')}};
 
-let transactions = getData('pocketTx', []);
-let payments = getData('pocketPayments', []);
-let goals = getData('pocketGoals', []);
-let debts = getData('pocketDebts', []);
-let weeklyBudget = Number(localStorage.getItem('pocketWeeklyBudget')) || 0;
-let startingBalance = 0;
-let startingIncome = 0;
-let startingOut = 0;
-let activityType = 'expense';
-let editIndex = null;
-let deleteIndex = null;
-let depositIndex = null;
-let editPaymentIndex = null;
-let editGoalIndex = null;
-let editDebtIndex = null;
-
-function saveAll() {
-  localStorage.setItem('pocketTx', JSON.stringify(transactions));
-  localStorage.setItem('pocketPayments', JSON.stringify(payments));
-  localStorage.setItem('pocketGoals', JSON.stringify(goals));
-  localStorage.setItem('pocketDebts', JSON.stringify(debts));
-  localStorage.setItem('pocketWeeklyBudget', String(weeklyBudget));
-}
-
-function subscriptionReserve() {
-  return payments.reduce((total, item) => total + Number(item.amount || 0), 0);
-}
-
-function escapeHTML(value) {
-  const div = document.createElement('div');
-  div.textContent = value;
-  return div.innerHTML;
-}
-
-function dateLabel(value) {
-  return new Date(`${value}T12:00:00`).toLocaleDateString('en-GB', {day:'numeric', month:'short'});
-}
-
-function toast(message) {
-  const element = $('#toast');
-  element.textContent = message;
-  element.classList.add('show');
-  clearTimeout(element.timer);
-  element.timer = setTimeout(() => element.classList.remove('show'), 2300);
-}
-
-function transactionHTML(item, index, editable = false) {
-  return `<div class="transaction">
-    <i class="icon">${item.icon || '•'}</i>
-    <div><strong>${escapeHTML(item.name)}</strong><small>${escapeHTML(item.cat)} · ${item.date}</small></div>
-    ${editable ? `<div class="activityActions"><button data-edit-activity="${index}" aria-label="Edit ${escapeHTML(item.name)}">Edit</button></div>` : ''}
-    <strong class="${item.amount > 0 ? 'in' : ''}">${item.amount > 0 ? '+' : ''}${cash(item.amount)}</strong>
-  </div>`;
-}
-
-function paymentHTML(item, wide = false, index = 0) {
-  return `<div class="${wide ? 'wide' : 'payment'}"><i class="logo">${escapeHTML(item.logo || item.name[0])}</i><div><strong>${escapeHTML(item.name)}</strong><small>${dateLabel(item.date)}</small><small class="frequency">${escapeHTML(item.frequency)}</small></div>${wide ? `<div class="cardActions"><button class="manageEdit" data-edit-payment="${index}">Edit</button></div>` : ''}<strong>${cash(item.amount)}</strong></div>`;
-}
-
-function goalHTML(item, wide = false, index = 0) {
-  const percent = Math.min(100, item.saved / item.target * 100);
-  return `<div class="${wide ? 'wide' : 'goal'}">${wide ? '<i class="logo">◇</i>' : ''}<div><div class="goalHead"><span><strong>${escapeHTML(item.name)}</strong><small>${Math.round(percent)}% saved</small></span><strong>${cash(item.saved)} / ${cash(item.target)}</strong></div><div class="track"><i style="width:${percent}%"></i></div></div>${wide ? `<div class="cardActions"><button class="addToGoal" data-deposit="${index}" ${percent >= 100 ? 'disabled' : ''}>${percent >= 100 ? 'Goal reached' : '＋ Add money'}</button><button class="manageEdit" data-edit-goal="${index}">Edit</button></div>` : ''}</div>`;
-}
-
-function renderActivity() {
-  $('#recent').innerHTML = transactions.slice(0, 4).map((item, index) => transactionHTML(item, index)).join('');
-  $('#all').innerHTML = transactions.length
-    ? transactions.map((item, index) => transactionHTML(item, index, true)).join('')
-    : '<div class="emptyState">No activity yet. Add money earned or a purchase to begin.</div>';
-  $$('[data-edit-activity]').forEach(button => button.onclick = () => openActivityModal(transactions[+button.dataset.editActivity].amount > 0 ? 'income' : 'expense', +button.dataset.editActivity));
-}
-
-function renderPayments() {
-  $('#upcoming').innerHTML = payments.slice(0, 2).map(item => paymentHTML(item)).join('') || '<p class="noDebtPreview">No upcoming payments.</p>';
-  $('#paymentCards').innerHTML = payments.length ? payments.map((item,index) => paymentHTML(item, true, index)).join('') : '<div class="emptyState">No payments added yet.</div>';
-  $('#home .due strong').textContent = cash(payments.reduce((total, item) => total + item.amount, 0));
-  $('nav [data-page="payments"] b').textContent = payments.length;
-  $$('[data-edit-payment]').forEach(button => button.onclick = () => openPaymentEditor(+button.dataset.editPayment));
-}
-
-function renderGoals() {
-  $('#goalList').innerHTML = goals.slice(0, 1).map(item => goalHTML(item)).join('') || '<p class="noDebtPreview">No savings goal yet.</p>';
-  $('#goalCards').innerHTML = goals.length ? goals.map((item, index) => goalHTML(item, true, index)).join('') : '<div class="emptyState">No goals yet. Create one to start saving.</div>';
-  $$('[data-deposit]').forEach(button => button.onclick = () => openDeposit(+button.dataset.deposit));
-  $$('[data-edit-goal]').forEach(button => button.onclick = () => openGoalEditor(+button.dataset.editGoal));
-}
-
-function renderDebts() {
-  const outstanding = debts.filter(item => !item.done);
-  $('#debtTotal').textContent = cash(outstanding.reduce((total, item) => total + item.amount, 0));
-  $('#debtBadge').textContent = outstanding.length;
-  $('#debtProgress').textContent = outstanding.length ? `${outstanding.length} ${outstanding.length === 1 ? 'item' : 'items'} left` : 'Nothing outstanding';
-  $('#debtList').innerHTML = debts.length ? debts.map((item, index) => `<article class="debtItem ${item.done ? 'done' : ''}"><input class="debtCheck" type="checkbox" data-debt="${index}" ${item.done ? 'checked' : ''} aria-label="Mark payment to ${escapeHTML(item.person)} as repaid"><div class="debtInfo"><h3>${escapeHTML(item.person)}</h3><p>${escapeHTML(item.reason)}</p></div><div class="debtMeta"><strong>${cash(item.amount)}</strong><small>${item.done ? 'Paid' : `Due ${dateLabel(item.date)}`}</small></div><button class="manageEdit" data-edit-debt="${index}">Edit</button></article>`).join('') : '<div class="emptyState">Nothing to pay back right now. Nice!</div>';
-  $('#upcomingDebts').innerHTML = outstanding.length ? outstanding.slice(0, 2).map(item => `<div class="debtPreview"><i>↗</i><div><strong>${escapeHTML(item.person)}</strong><small>${escapeHTML(item.reason)} · ${dateLabel(item.date)}</small></div><strong>${cash(item.amount)}</strong></div>`).join('') : '<p class="noDebtPreview">Nothing to pay back — you’re all clear.</p>';
-  $$('[data-debt]').forEach(box => box.onchange = () => {
-    const debt = debts[+box.dataset.debt];
-    if (box.checked && !debt.done) {
-      debt.done = true;
-      debt.paidTransactionId = `payback-${Date.now()}-${box.dataset.debt}`;
-      transactions.unshift({id:debt.paidTransactionId, name:`Paid back ${debt.person}`, cat:'Paid back', amount:-Number(debt.amount), date:'Just now', icon:'✓'});
-    } else if (!box.checked && debt.done) {
-      debt.done = false;
-      transactions = transactions.filter(item => item.id !== debt.paidTransactionId);
-      delete debt.paidTransactionId;
-    }
-    saveAll(); render();
-    toast(box.checked ? 'Paid back and balance updated' : 'Pay-back returned to your checklist');
-  });
-  $$('[data-edit-debt]').forEach(button => button.onclick = () => openDebtEditor(+button.dataset.editDebt));
-}
-
-function renderBudgetAndBalance() {
-  const income = transactions.filter(item => item.amount > 0).reduce((total, item) => total + item.amount, 0);
-  const moneyOut = -transactions.filter(item => item.amount < 0).reduce((total, item) => total + item.amount, 0) + subscriptionReserve();
-  const weeklySpent = -transactions.filter(item => item.amount < 0).reduce((total, item) => total + item.amount, 0) + subscriptionReserve();
-  const left = Math.max(0, weeklyBudget - weeklySpent);
-  const percent = weeklyBudget ? Math.min(100, weeklySpent / weeklyBudget * 100) : 0;
-  $('#balance').textContent = cash(startingBalance + income - moneyOut);
-  $('#moneyIn').textContent = cash(startingIncome + income);
-  $('#moneyOut').textContent = cash(startingOut + moneyOut);
-  $('#spent').textContent = cash(weeklySpent);
-  $('#weeklyLimit').textContent = cash(weeklyBudget);
-  $('#left').textContent = cash(left);
-  $('#ring').style.background = `conic-gradient(var(--green) ${percent}%,#e8efec 0)`;
-  $('#status').textContent = !weeklyBudget ? 'Set budget' : percent > 100 ? 'Over budget' : percent > 90 ? 'Slow down' : percent > 70 ? 'Nearly there' : 'On track';
-  const daysLeft = Math.max(1, 7 - new Date().getDay());
-  $('#tip').textContent = !weeklyBudget ? 'Set a weekly budget to start planning your spending.' : left ? `Spend up to ${cash(left / daysLeft)} a day to stay on budget and save the rest.` : 'Your weekly budget is used up. Try a no-spend day.';
-  const names = ['Food & drink','Fun','Shopping','Transport','Other'];
-  const colors = ['#3d5a80','#ee6c4d','#98c1d9','#293241','#7b8fa8'];
-  const values = names.map(name => -transactions.filter(item => item.cat === name && item.amount < 0).reduce((total, item) => total + item.amount, 0));
-  const spentCategories = names.map((name,index) => ({name, value:values[index], color:colors[index]})).filter(item => item.value > 0);
-  const totalSpent = spentCategories.reduce((total,item) => total + item.value, 0);
-  $('#total').textContent = cash(totalSpent);
-  $('#cats').innerHTML = spentCategories.length ? spentCategories.map(item => `<div class="cat"><i style="background:${item.color}"></i><span>${item.name}</span><strong>${cash(item.value)}</strong></div>`).join('') : '<p class="noDebtPreview">No spending recorded yet.</p>';
-  $('#home .donut').style.background = spentCategories.length ? `conic-gradient(${spentCategories.map((item,index) => { const start = spentCategories.slice(0,index).reduce((sum,part) => sum + part.value,0) / totalSpent * 100; const end = (start + item.value / totalSpent * 100); return `${item.color} ${start}% ${end}%`; }).join(',')})` : '#98c1d9';
-}
-
-function render() {
-  renderBudgetAndBalance();
-  renderActivity();
-  renderPayments();
-  renderGoals();
-  renderDebts();
-}
-
-function openModal(id) { $(`#${id}`).classList.remove('hidden'); document.body.style.overflow = 'hidden'; }
-function closeModal(id) { $(`#${id}`).classList.add('hidden'); document.body.style.overflow = ''; }
-
-function setActivityType(type) {
-  activityType = type;
-  $$('[data-type]').forEach(button => button.classList.toggle('active', button.dataset.type === type));
-  $('#modal h2').textContent = editIndex === null ? (type === 'income' ? 'Add money earned' : 'Add a purchase') : (type === 'income' ? 'Edit money earned' : 'Edit purchase');
-  $('#noteLabel').textContent = type === 'income' ? 'WHERE DID IT COME FROM?' : 'WHAT WAS IT FOR?';
-  $('#note').placeholder = type === 'income' ? 'e.g. Chores or weekend job' : 'e.g. Cinema ticket';
-  $('#categoryField').classList.toggle('hiddenField', type === 'income');
-}
-
-function openActivityModal(type, index = null) {
-  editIndex = index;
-  const item = index === null ? null : transactions[index];
-  $('#amount').value = item ? Math.abs(item.amount) : '';
-  $('#note').value = item ? item.name : '';
-  $('#category').value = item && item.amount < 0 ? item.cat : 'Fun';
-  $('#saveActivity').textContent = item ? 'Save changes' : 'Save to Pocket';
-  $('#deleteFromEdit').classList.toggle('hidden', item === null);
-  setActivityType(type);
-  openModal('modal');
-  setTimeout(() => $('#amount').focus(), 50);
-}
-
-function openDeleteActivity(index) {
-  deleteIndex = index;
-  $('#deleteActivityName').textContent = transactions[index].name;
-  openModal('deleteActivityModal');
-}
-
-function openDeposit(index) {
-  depositIndex = index;
-  $('#depositGoalName').textContent = goals[index].name;
-  $('#depositAmount').value = '';
-  openModal('depositModal');
-}
-
-function openPaymentEditor(index) {
-  editPaymentIndex = index;
-  const item = payments[index];
-  $('#paymentName').value = item.name;
-  $('#paymentAmount').value = item.amount;
-  $('#paymentDate').value = item.date;
-  $('#paymentFrequency').value = item.frequency;
-  $('#paymentModal h2').textContent = 'Edit upcoming payment';
-  $('#savePayment').textContent = 'Save changes';
-  openModal('paymentModal');
-}
-
-function openGoalEditor(index) {
-  editGoalIndex = index;
-  const item = goals[index];
-  $('#goalName').value = item.name;
-  $('#goalTarget').value = item.target;
-  $('#goalSaved').value = item.saved;
-  $('#goalModal h2').textContent = 'Edit savings goal';
-  $('#saveGoal').textContent = 'Save changes';
-  openModal('goalModal');
-}
-
-function openDebtEditor(index) {
-  editDebtIndex = index;
-  const item = debts[index];
-  $('#debtPerson').value = item.person;
-  $('#debtReason').value = item.reason;
-  $('#debtAmount').value = item.amount;
-  $('#debtDate').value = item.date;
-  $('#debtModal h2').textContent = 'Edit pay-back item';
-  $('#saveDebt').textContent = 'Save changes';
-  openModal('debtModal');
-}
-
-function showPage(name) {
-  $$('.page').forEach(page => page.classList.remove('active'));
-  $(`#${name}`).classList.add('active');
-  $('main').classList.toggle('subpage', name !== 'home');
-  $$('nav button').forEach(button => button.classList.toggle('active', button.dataset.page === name));
-  $('#title').textContent = {home:'Good morning',activity:'Your money activity',payments:'Upcoming payments',payback:'Your pay-back checklist',goals:'Your savings goals'}[name];
-  $('aside').classList.remove('open');
-  window.scrollTo(0,0);
-}
-
-$$('nav button').forEach(button => button.onclick = () => showPage(button.dataset.page));
-$$('[data-go]').forEach(button => button.onclick = () => showPage(button.dataset.go));
-$$('[data-type]').forEach(button => button.onclick = () => setActivityType(button.dataset.type));
-$$('[data-close]').forEach(button => button.onclick = () => closeModal(button.dataset.close));
-$$('.backdrop').forEach(backdrop => backdrop.onclick = event => { if (event.target === backdrop) closeModal(backdrop.id); });
-
-$('#addIncome').onclick = () => openActivityModal('income');
-$('#quickAdd').onclick = $('#addExpense').onclick = () => openActivityModal('expense');
-$('#modal .close').onclick = () => closeModal('modal');
-$('#setBudget').onclick = () => { $('#budgetAmount').value = weeklyBudget; openModal('budgetModal'); };
-$('#deleteFromEdit').onclick = () => { const index = editIndex; closeModal('modal'); openDeleteActivity(index); };
-$('#newPayment').onclick = () => { editPaymentIndex=null; $('#paymentForm').reset(); const date = new Date(); date.setDate(date.getDate()+1); $('#paymentDate').value = date.toISOString().slice(0,10); $('#paymentModal h2').textContent='Add upcoming payment'; $('#savePayment').textContent='Save payment'; openModal('paymentModal'); };
-$('#newGoal').onclick = () => { editGoalIndex=null; $('#goalForm').reset(); $('#goalModal h2').textContent='Create a goal'; $('#saveGoal').textContent='Create goal'; openModal('goalModal'); };
-$('#newDebt').onclick = () => { editDebtIndex=null; $('#debtForm').reset(); const date = new Date(); date.setDate(date.getDate()+7); $('#debtDate').value = date.toISOString().slice(0,10); $('#debtModal h2').textContent='What do you need to pay back?'; $('#saveDebt').textContent='Add to checklist'; openModal('debtModal'); };
-
-$('#modal form').onsubmit = event => {
-  event.preventDefault();
-  const amount = Number($('#amount').value);
-  const existing = editIndex === null ? null : transactions[editIndex];
-  const item = {name:$('#note').value.trim(), cat:activityType === 'income' ? 'Money in' : $('#category').value, amount:activityType === 'income' ? amount : -amount, date:existing?.date || 'Just now', icon:activityType === 'income' ? '✦' : existing?.icon || '•'};
-  if (editIndex === null) transactions.unshift(item); else transactions[editIndex] = item;
-  saveAll(); closeModal('modal'); render();
-  toast(editIndex === null ? 'Activity added' : 'Activity updated');
-  editIndex = null;
-};
-
-$('#confirmActivityDelete').onclick = () => {
-  transactions.splice(deleteIndex, 1);
-  saveAll(); closeModal('deleteActivityModal'); render(); showPage('activity');
-  toast('Activity deleted and totals updated');
-  deleteIndex = null;
-};
-
-$('#budgetForm').onsubmit = event => {
-  event.preventDefault();
-  weeklyBudget = Number($('#budgetAmount').value);
-  saveAll(); closeModal('budgetModal'); render();
-  toast('Weekly budget updated');
-};
-
-$('#paymentForm').onsubmit = event => {
-  event.preventDefault();
-  const name = $('#paymentName').value.trim();
-  const item = {name, date:$('#paymentDate').value, amount:Number($('#paymentAmount').value), frequency:$('#paymentFrequency').value, logo:name[0].toUpperCase()};
-  if (editPaymentIndex === null) payments.push(item); else payments[editPaymentIndex] = item;
-  payments.sort((a,b) => a.date.localeCompare(b.date));
-  saveAll(); event.target.reset(); closeModal('paymentModal'); render(); showPage('payments'); toast(editPaymentIndex === null ? 'Payment added — no surprises' : 'Payment updated'); editPaymentIndex=null;
-};
-
-$('#goalForm').onsubmit = event => {
-  event.preventDefault();
-  const saved = Number($('#goalSaved').value), target = Number($('#goalTarget').value);
-  if (saved > target) return toast('Saved amount cannot be above the target');
-  const item = {name:$('#goalName').value.trim(), saved, target};
-  if (editGoalIndex === null) goals.push(item); else goals[editGoalIndex] = item;
-  saveAll(); event.target.reset(); closeModal('goalModal'); render(); showPage('goals'); toast(editGoalIndex === null ? 'New goal created' : 'Goal updated'); editGoalIndex=null;
-};
-
-$('#depositForm').onsubmit = event => {
-  event.preventDefault();
-  const goal = goals[depositIndex];
-  const added = Math.min(Number($('#depositAmount').value), goal.target-goal.saved);
-  goal.saved += added;
-  transactions.unshift({name:`${goal.name} savings`, cat:'Savings goal', amount:-added, date:'Just now', icon:'◇'});
-  saveAll(); closeModal('depositModal'); render();
-  toast(goal.saved >= goal.target ? 'Goal reached — amazing!' : 'Money added to your goal');
-};
-
-$('#debtForm').onsubmit = event => {
-  event.preventDefault();
-  const existing = editDebtIndex === null ? null : debts[editDebtIndex];
-  const item = {person:$('#debtPerson').value.trim(), reason:$('#debtReason').value.trim(), amount:Number($('#debtAmount').value), date:$('#debtDate').value, done:existing?.done || false};
-  if (existing?.done && existing.paidTransactionId) {
-    const paidTransaction = transactions.find(transaction => transaction.id === existing.paidTransactionId);
-    if (paidTransaction) { paidTransaction.amount = -item.amount; paidTransaction.name = `Paid back ${item.person}`; }
-  }
-  if (editDebtIndex === null) debts.push(item); else debts[editDebtIndex] = item;
-  debts.sort((a,b) => a.date.localeCompare(b.date));
-  saveAll(); event.target.reset(); closeModal('debtModal'); render(); showPage('payback'); toast(editDebtIndex === null ? 'Added to your pay-back checklist' : 'Pay-back item updated'); editDebtIndex=null;
-};
-
-$('#deleteData').onclick = () => openModal('deleteModal');
-$('#confirmDelete').onclick = () => {
-  ['pocketTx','pocketPayments','pocketGoals','pocketDebts','pocketWeeklyBudget'].forEach(key => localStorage.removeItem(key));
-  localStorage.setItem('pocketCleared','true');
-  transactions=[]; payments=[]; goals=[]; debts=[]; weeklyBudget=60;
-  startingBalance=0; startingIncome=0; startingOut=0;
-  closeModal('deleteModal'); render(); showPage('home'); toast('Your Pocket data has been deleted');
-};
-
-$('#menu').onclick = () => $('aside').classList.toggle('open');
-$('#nudge button').onclick = () => $('#nudge').remove();
-document.addEventListener('keydown', event => { if (event.key === 'Escape') $$('.backdrop').forEach(item => closeModal(item.id)); });
-render();
+const renderImageActions=renderIdeas;renderIdeas=function(){renderImageActions();const visible=ideas.filter(x=>filter==='all'||(filter==='saved'&&x.saved)||(filter==='done'&&x.done));ideasEl.querySelectorAll('.image-card').forEach((el,index)=>{const data=visible[index];if(!data)return;const footer=document.createElement('div');footer.className='idea-foot image-actions';footer.innerHTML=`<span>${data.time||'just now'}</span><span class="idea-actions"><button data-image-act="edit" title="Edit caption">✎</button><button data-image-act="save" title="Save">${data.saved?'★':'☆'}</button><button data-image-act="done" title="Resolve">${data.done?'↶':'✓'}</button><button data-image-act="delete" title="Delete">×</button></span>`;footer.querySelectorAll('[data-image-act]').forEach(button=>button.addEventListener('click',event=>{event.stopPropagation();const action=button.dataset.imageAct;if(action==='edit'){const next=prompt('Edit image caption',data.text||'Image note');if(next===null)return;data.text=next.trim()||'Image note'}if(action==='save')data.saved=!data.saved;if(action==='done')data.done=!data.done;if(action==='delete')ideas=ideas.filter(item=>item!==data);save();renderIdeas()}));el.appendChild(footer)})};renderIdeas();
+const renderImageActionsCorrect=renderIdeas;renderIdeas=function(){renderImageActionsCorrect();const imageData=ideas.filter(x=>(filter==='all'||(filter==='saved'&&x.saved)||(filter==='done'&&x.done))&&x.image);ideasEl.querySelectorAll('.image-actions').forEach(footer=>footer.remove());ideasEl.querySelectorAll('.image-card').forEach((el,index)=>{const data=imageData[index];if(!data)return;const footer=document.createElement('div');footer.className='idea-foot image-actions';footer.innerHTML=`<span>${data.time||'just now'}</span><span class="idea-actions"><button data-image-act="edit" title="Edit caption">✎</button><button data-image-act="save" title="Save">${data.saved?'★':'☆'}</button><button data-image-act="done" title="Resolve">${data.done?'↶':'✓'}</button><button data-image-act="delete" title="Delete">×</button></span>`;footer.querySelectorAll('[data-image-act]').forEach(button=>button.addEventListener('click',event=>{event.stopPropagation();const action=button.dataset.imageAct;if(action==='edit'){const next=prompt('Edit image caption',data.text||'Image note');if(next===null)return;data.text=next.trim()||'Image note'}if(action==='save')data.saved=!data.saved;if(action==='done')data.done=!data.done;if(action==='delete')ideas=ideas.filter(item=>item!==data);save();renderIdeas()}));el.appendChild(footer)})};renderIdeas();
+const wordmark=document.querySelector('.wordmark');if(wordmark)wordmark.textContent='headspace';document.title='headspace — a notebook for unfinished thoughts';document.querySelector('#helpBtn')?.remove();document.querySelector('.avatar')?.remove();if(!document.querySelector('.top-actions')?.children.length)document.querySelector('.top-actions')?.remove();
+const boardLabel=document.querySelector('.book-title .eyebrow');if(boardLabel)boardLabel.textContent='WHITEBOARD';const exitBoards=document.querySelector('#exitBtn');if(exitBoards)exitBoards.textContent='← All whiteboards';
+document.title='headspace — a whiteboard for unfinished thoughts';$$('.eyebrow').forEach(label=>{if(label.textContent==='YOUR DIGITAL NOTEBOOK')label.textContent='YOUR DIGITAL WHITEBOARD';if(label.textContent==='RECENT NOTEBOOKS')label.textContent='RECENT WHITEBOARDS'});const nameLabel=document.querySelector('.name-field');if(nameLabel)nameLabel.childNodes[0].textContent='NAME YOUR WHITEBOARD';
+const startButton=document.querySelector('#startBtn');if(startButton)startButton.childNodes[0].textContent='Open a new whiteboard ';const setupTitle=document.querySelector('#setupView h2');if(setupTitle)setupTitle.innerHTML='What kind of whiteboard<br>feels right today?';
+const removeDuplicateCaptionEdit=renderIdeas;renderIdeas=function(){removeDuplicateCaptionEdit();ideasEl.querySelectorAll('.caption-edit').forEach(button=>button.remove())};renderIdeas();
+const boardSizer=document.createElement('div');boardSizer.className='board-sizer';canvasWrap.prepend(boardSizer);const boardWidth=2400,boardHeight=1600;boardSizer.style.width=boardWidth+'px';boardSizer.style.height=boardHeight+'px';cv.style.width=boardWidth+'px';cv.style.height=boardHeight+'px';cv.style.right='auto';cv.style.bottom='auto';resize();canvasWrap.addEventListener('pointerdown',event=>{if(drawing||event.target!==canvasWrap)return;const startX=event.clientX,startY=event.clientY,left=canvasWrap.scrollLeft,top=canvasWrap.scrollTop;canvasWrap.classList.add('panning');const move=next=>{canvasWrap.scrollLeft=left-(next.clientX-startX);canvasWrap.scrollTop=top-(next.clientY-startY)};const end=()=>{canvasWrap.classList.remove('panning');canvasWrap.releasePointerCapture(event.pointerId);canvasWrap.removeEventListener('pointermove',move);canvasWrap.removeEventListener('pointerup',end)};canvasWrap.setPointerCapture(event.pointerId);canvasWrap.addEventListener('pointermove',move);canvasWrap.addEventListener('pointerup',end)});
+canvasWrap.scrollLeft=0;canvasWrap.scrollTop=0;
+const boardLayer=document.createElement('div');boardLayer.className='board-layer';boardLayer.style.width=boardWidth+'px';boardLayer.style.height=boardHeight+'px';boardLayer.append(cv,hint,ideasEl);boardSizer.remove();canvasWrap.prepend(boardLayer);boardLayer.addEventListener('pointerdown',event=>{if(drawing||event.target!==boardLayer)return;const startX=event.clientX,startY=event.clientY,left=canvasWrap.scrollLeft,top=canvasWrap.scrollTop;canvasWrap.classList.add('panning');const move=next=>{canvasWrap.scrollLeft=left-(next.clientX-startX);canvasWrap.scrollTop=top-(next.clientY-startY)};const end=()=>{canvasWrap.classList.remove('panning');boardLayer.releasePointerCapture(event.pointerId);boardLayer.removeEventListener('pointermove',move);boardLayer.removeEventListener('pointerup',end)};boardLayer.setPointerCapture(event.pointerId);boardLayer.addEventListener('pointermove',move);boardLayer.addEventListener('pointerup',end)});canvasWrap.scrollLeft=0;canvasWrap.scrollTop=0;
+$('#clearBtn').onclick=()=>{if(!confirm('Clear all thoughts and pen marks from this whiteboard?'))return;ideas=[];ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,cv.width,cv.height);ctx.restore();save();renderIdeas()};
+const renderFreeText=renderIdeas;renderIdeas=function(){renderFreeText();const visible=ideas.filter(x=>filter==='all'||(filter==='saved'&&x.saved)||(filter==='done'&&x.done));ideasEl.querySelectorAll('.idea').forEach((el,index)=>{const data=visible[index];if(!data||!data.plain)return;el.className='idea free-text';el.innerHTML='';const content=document.createElement('div');content.className='free-text-content';content.contentEditable='true';content.spellcheck=true;content.textContent=data.text||'';content.addEventListener('blur',()=>{data.text=content.textContent.trim();if(!data.text)ideas=ideas.filter(item=>item!==data);save();renderIdeas()});content.addEventListener('keydown',event=>{if(event.key==='Escape'){content.blur()} });el.appendChild(content);el.onpointerdown=event=>{if(event.target.closest('[contenteditable="true"]'))return}})};renderIdeas();
+boardLayer.addEventListener('pointerdown',event=>{if(document.querySelector('.tool.active')?.dataset.tool!=='text'||event.target!==boardLayer)return;event.stopImmediatePropagation();const data={text:'',x:event.offsetX,y:event.offsetY,time:new Date().toLocaleString([], {dateStyle:'medium',timeStyle:'short'}),author:typeof contributorName==='string'?contributorName:'You',saved:false,done:false,plain:true};ideas.push(data);save();renderIdeas();requestAnimationFrame(()=>{const target=[...ideasEl.querySelectorAll('.free-text-content')].find(node=>node.textContent==='');target?.focus()})},{capture:true});
+let whiteboards=[];try{whiteboards=JSON.parse(localStorage.getItem('headspaceWhiteboards')||'[]')}catch(error){whiteboards=[]}if(!whiteboards.length){const legacy=localStorage.getItem('mossNotebook');if(legacy){try{whiteboards=[JSON.parse(legacy)];localStorage.setItem('headspaceWhiteboards',JSON.stringify(whiteboards))}catch(error){whiteboards=[]}}}let currentWhiteboard=null;const originalOpenBookForCollection=openBook;openBook=function(data){currentWhiteboard=data;originalOpenBookForCollection(data)};save=function(){if(!currentWhiteboard){currentWhiteboard={book,ideas,paper};whiteboards.push(currentWhiteboard)}currentWhiteboard.book=book;currentWhiteboard.ideas=ideas;currentWhiteboard.paper=paper;localStorage.setItem('headspaceWhiteboards',JSON.stringify(whiteboards));localStorage.setItem('mossNotebook',JSON.stringify(currentWhiteboard))};renderRecent=function(){const wrap=$('#recentWrap'),list=$('#recentList');if(!whiteboards.length){wrap.classList.add('hidden');return}wrap.classList.remove('hidden');list.innerHTML=whiteboards.map((board,index)=>`<div class="recent-item" data-board-index="${index}"><span class="paper-dot"></span><strong>${board.book||'Untitled whiteboard'}</strong><small>Continue writing →</small></div>`).join('');list.querySelectorAll('.recent-item').forEach(item=>item.onclick=()=>openBook(whiteboards[Number(item.dataset.boardIndex)]))};$('#createBtn').onclick=()=>{const board={book:$('#notebookName').value.trim()||'Untitled whiteboard',ideas:[],paper};whiteboards.push(board);save();openBook(board)};renderRecent();
+const renderFreeTextActions=renderIdeas;renderIdeas=function(){renderFreeTextActions();const visible=ideas.filter(x=>filter==='all'||(filter==='saved'&&x.saved)||(filter==='done'&&x.done));const plainData=visible.filter(x=>x.plain);ideasEl.querySelectorAll('.free-text-actions').forEach(actions=>actions.remove());ideasEl.querySelectorAll('.free-text').forEach((el,index)=>{const data=plainData[index];if(!data)return;const actions=document.createElement('div');actions.className='free-text-actions idea-actions';actions.innerHTML=`<button data-free-act="edit" title="Edit text">✎</button><button data-free-act="save" title="Save">${data.saved?'★':'☆'}</button><button data-free-act="done" title="Resolve">${data.done?'↶':'✓'}</button><button data-free-act="delete" title="Delete">×</button>`;actions.querySelectorAll('button').forEach(button=>button.addEventListener('click',event=>{event.stopPropagation();const action=button.dataset.freeAct;if(action==='edit')el.querySelector('.free-text-content')?.focus();if(action==='save')data.saved=!data.saved;if(action==='done')data.done=!data.done;if(action==='delete')ideas=ideas.filter(item=>item!==data);save();renderIdeas()}));el.appendChild(actions)})};renderIdeas();
+const filterRow=document.querySelector('.filter-row');const workspaceElement=document.querySelector('#workspace');if(filterRow&&workspaceElement)notebook.insertBefore(filterRow,workspaceElement);
+document.addEventListener('click',event=>{const button=event.target.closest('[data-act="done"],[data-image-act="done"],[data-free-act="done"]');if(!button)return;const card=button.closest('.idea');const index=Number(card?.dataset.ideaIndex);const data=Number.isInteger(index)?ideas[index]:null;if(!data)return;event.preventDefault();event.stopImmediatePropagation();data.done=!data.done;button.textContent=data.done?'↶':'✓';card.classList.toggle('done',data.done);save()},true);
+const headActions=document.querySelector('.head-actions');const saveBoardButton=document.createElement('button');saveBoardButton.className='icon-btn version-save';saveBoardButton.textContent='Save';saveBoardButton.title='Save a named version';const historyButton=document.createElement('button');historyButton.className='icon-btn version-history';historyButton.textContent='↶';historyButton.title='Version history';headActions?.prepend(historyButton);headActions?.prepend(saveBoardButton);const versionPanel=document.createElement('div');versionPanel.className='version-panel hidden';versionPanel.innerHTML='<div class="version-panel-head"><strong>Version history</strong><button class="version-close" type="button">×</button></div><div class="version-list"></div>';document.querySelector('.notebook-head')?.appendChild(versionPanel);const versionList=versionPanel.querySelector('.version-list');const cloneIdeas=()=>JSON.parse(JSON.stringify(ideas));const renderVersions=()=>{const versions=currentWhiteboard?.versions||[];versionList.innerHTML=versions.length?versions.map((version,index)=>`<div class="version-row"><div><strong>${version.name}</strong><small>${new Date(version.createdAt).toLocaleString()}</small></div><button data-version-index="${index}">Restore</button></div>`).join(''):'<p class="version-empty">No saved versions yet.</p>'};saveBoardButton.onclick=()=>{const name=prompt('Name this version',`Version ${(currentWhiteboard?.versions?.length||0)+1}`);if(name===null)return;const clean=name.trim()||`Version ${(currentWhiteboard?.versions?.length||0)+1}`;if(!currentWhiteboard)return;currentWhiteboard.versions=currentWhiteboard.versions||[];currentWhiteboard.versions.push({name:clean,createdAt:Date.now(),ideas:cloneIdeas(),paper,drawing:cv.toDataURL()});save();renderVersions();notify('Version saved')};historyButton.onclick=event=>{event.stopPropagation();renderVersions();versionPanel.classList.toggle('hidden')};versionPanel.querySelector('.version-close').onclick=()=>versionPanel.classList.add('hidden');versionPanel.onclick=event=>{const button=event.target.closest('[data-version-index]');if(!button)return;const version=currentWhiteboard?.versions?.[Number(button.dataset.versionIndex)];if(!version||!confirm(`Overwrite the current whiteboard with “${version.name}”?`))return;ideas=JSON.parse(JSON.stringify(version.ideas||[]));paper=version.paper||'blank';currentWhiteboard.ideas=ideas;currentWhiteboard.paper=paper;canvasWrap.classList.toggle('grid',paper==='grid');renderIdeas();if(version.drawing){const image=new Image();image.onload=()=>{ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,cv.width,cv.height);ctx.drawImage(image,0,0,cv.width,cv.height);ctx.restore()};image.src=version.drawing}else{ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,cv.width,cv.height);ctx.restore()}save();versionPanel.classList.add('hidden');notify(`${version.name} restored`)};document.addEventListener('click',event=>{if(!versionPanel.contains(event.target)&&event.target!==historyButton)versionPanel.classList.add('hidden')});
+let contributorName=localStorage.getItem('headspaceContributor');if(!contributorName||contributorName==='You')contributorName='Creator';whiteboards.forEach((board,index)=>{if(!board.id)board.id=`whiteboard-${Date.now()}-${index}-${Math.random().toString(36).slice(2,7)}`});localStorage.setItem('headspaceWhiteboards',JSON.stringify(whiteboards));const previousAddIdea=addIdea;addIdea=function(text,x,y,image){previousAddIdea(text,x,y,image);const item=ideas[ideas.length-1];if(item){item.author=contributorName;item.time=new Date().toLocaleString([], {dateStyle:'medium',timeStyle:'short'});save();renderIdeas()}};const shareWhiteboard=shareBtn=>{if(!currentWhiteboard)return;const payload=encodeURIComponent(JSON.stringify({...currentWhiteboard,ideas:currentWhiteboard.ideas||ideas}));const link=`${location.href.split('#')[0]}#whiteboard=${encodeURIComponent(currentWhiteboard.id)}&payload=${payload}`;navigator.clipboard?.writeText(link);notify('Whiteboard link copied')};$('#shareBtn').onclick=()=>shareWhiteboard($('#shareBtn'));
+save=function(){if(!currentWhiteboard){currentWhiteboard=whiteboards.find(board=>board.book===book);if(!currentWhiteboard){currentWhiteboard={id:`whiteboard-${Date.now()}-${Math.random().toString(36).slice(2,7)}`,book,ideas,paper};whiteboards.push(currentWhiteboard)}}currentWhiteboard.book=book;currentWhiteboard.ideas=ideas;currentWhiteboard.paper=paper;localStorage.setItem('headspaceWhiteboards',JSON.stringify(whiteboards));localStorage.setItem('mossNotebook',JSON.stringify(currentWhiteboard))};
+const createWhiteboard=$('#createBtn');createWhiteboard.onclick=()=>{const board={id:`whiteboard-${Date.now()}-${Math.random().toString(36).slice(2,7)}`,book:$('#notebookName').value.trim()||'Untitled whiteboard',ideas:[],paper};whiteboards.push(board);currentWhiteboard=board;save();openBook(board)};
+const joinOverlay=document.createElement('div');joinOverlay.className='join-overlay hidden';joinOverlay.innerHTML='<div class="join-card"><span class="eyebrow">SHARED WHITEBOARD</span><h2>What should we call you?</h2><p>Your name will appear under ideas you add.</p><input class="join-name" maxlength="30" placeholder="Your name" autocomplete="name"><button class="start-btn join-submit">Join whiteboard <span>↗</span></button></div>';document.body.appendChild(joinOverlay);const showJoin=board=>{joinOverlay.classList.remove('hidden');joinOverlay.querySelector('.join-name').focus();joinOverlay.querySelector('.join-submit').onclick=()=>{const value=joinOverlay.querySelector('.join-name').value.trim();if(!value)return;contributorName=value;localStorage.setItem('headspaceContributor',value);joinOverlay.classList.add('hidden');openBook(board)}};const sharedParams=new URLSearchParams(location.hash.replace(/^#/,''));const sharedId=sharedParams.get('whiteboard');let sharedBoard=sharedId?whiteboards.find(board=>board.id===sharedId):null;const sharedPayload=sharedParams.get('payload');if(!sharedBoard&&sharedPayload){try{sharedBoard=JSON.parse(sharedPayload);if(sharedBoard&&sharedBoard.id){whiteboards.push(sharedBoard);localStorage.setItem('headspaceWhiteboards',JSON.stringify(whiteboards))}}catch(error){sharedBoard=null}}if(sharedBoard)showJoin(sharedBoard)
+const renderContributionMeta=renderIdeas;renderIdeas=function(){renderContributionMeta();const visible=ideas.filter(x=>filter==='all'||(filter==='saved'&&x.saved)||(filter==='done'&&x.done));ideasEl.querySelectorAll('.idea').forEach((element,index)=>{const data=visible[index];if(!data)return;const foot=element.querySelector('.idea-foot');const label=`${data.author&&data.author!=='You'?data.author:'Creator'} · ${data.time||'just now'}`;if(foot){const first=foot.querySelector('span');if(first)first.textContent=label}else if(data.plain&&!element.querySelector('.contribution-meta')){const meta=document.createElement('div');meta.className='contribution-meta';meta.textContent=label;element.appendChild(meta)}})};renderIdeas();
+let storageMode=false;const filterTabs=document.querySelector('.filter-row>div');const storageTab=document.createElement('button');storageTab.className='filter';storageTab.dataset.filter='stored';storageTab.textContent='Storage';filterTabs?.appendChild(storageTab);const renderStorageUI=renderIdeas;renderIdeas=function(){renderStorageUI();ideasEl.querySelectorAll('.idea-actions').forEach(actions=>{if(actions.querySelector('[data-storage-act]'))return;const button=document.createElement('button');button.dataset.storageAct='toggle';button.title='Move to storage';button.textContent='▣';actions.appendChild(button)});if(storageMode){const visible=ideas.filter(x=>filter==='all'||(filter==='saved'&&x.saved)||(filter==='done'&&x.done));ideasEl.querySelectorAll('.idea').forEach((element,index)=>{element.style.display=visible[index]?.stored?'':'none'})}};renderIdeas();storageTab.onclick=()=>{storageMode=true;filter='all';document.querySelectorAll('.filter').forEach(tab=>tab.classList.remove('active'));storageTab.classList.add('active');renderIdeas()};document.querySelectorAll('.filter:not([data-filter="stored"])').forEach(tab=>tab.addEventListener('click',()=>{storageMode=false;storageTab.classList.remove('active')}));document.addEventListener('click',event=>{const button=event.target.closest('[data-storage-act]');if(!button)return;const card=button.closest('.idea');const index=Number(card?.dataset.ideaIndex);const data=Number.isInteger(index)?ideas[index]:null;if(!data)return;event.preventDefault();event.stopImmediatePropagation();data.stored=!data.stored;button.textContent=data.stored?'▣':'□';button.title=data.stored?'Remove from storage':'Move to storage';save();renderIdeas()},true);
+const moreButton=document.querySelector('.more-btn');const boardMenu=document.createElement('div');boardMenu.className='context-menu board-menu';boardMenu.innerHTML='<button data-board-action="copy">Make a copy</button><button data-board-action="delete">Delete whiteboard</button>';boardMenu.style.display='none';document.body.appendChild(boardMenu);moreButton?.addEventListener('click',event=>{event.stopPropagation();boardMenu.style.left=`${Math.min(event.clientX,innerWidth-190)}px`;boardMenu.style.top=`${Math.min(event.clientY,innerHeight-100)}px`;boardMenu.style.display=boardMenu.style.display==='block'?'none':'block'});boardMenu.addEventListener('click',event=>{const action=event.target.dataset.boardAction;if(!action||!currentWhiteboard)return;if(action==='delete'){if(!confirm(`Delete “${currentWhiteboard.book}”?`))return;whiteboards=whiteboards.filter(board=>board!==currentWhiteboard);localStorage.setItem('headspaceWhiteboards',JSON.stringify(whiteboards));boardMenu.style.display='none';renderRecent();show(welcome);notify('Whiteboard deleted');return}if(action==='copy'){const copy=JSON.parse(JSON.stringify(currentWhiteboard));copy.id=`whiteboard-${Date.now()}-${Math.random().toString(36).slice(2,7)}`;copy.book=`${currentWhiteboard.book} copy`;whiteboards.push(copy);currentWhiteboard=copy;save();boardMenu.style.display='none';openBook(copy);notify('Whiteboard copied')}});document.addEventListener('click',event=>{if(!boardMenu.contains(event.target)&&event.target!==moreButton)boardMenu.style.display='none'});
+const renameBoardButton=document.createElement('button');renameBoardButton.className='icon-btn';renameBoardButton.textContent='Rename';renameBoardButton.title='Rename whiteboard';headActions?.prepend(renameBoardButton);const colorPicker=document.createElement('input');colorPicker.type='color';colorPicker.className='board-color-picker';colorPicker.value=currentWhiteboard?.color||'#8eabb9';document.body.appendChild(colorPicker);const applyBoardColor=()=>{const color=currentWhiteboard?.color||colorPicker.value;$('#paperDot').style.background=color;colorPicker.value=color};renameBoardButton.onclick=()=>{if(!currentWhiteboard)return;const next=prompt('Rename whiteboard',currentWhiteboard.book||book);if(next===null||!next.trim())return;book=next.trim();currentWhiteboard.book=book;$('#bookName').textContent=book;save();renderRecent();notify('Whiteboard renamed')};colorPicker.oninput=()=>{if(!currentWhiteboard)return;currentWhiteboard.color=colorPicker.value;$('#paperDot').style.background=colorPicker.value;save()};$('#paperDot').onclick=()=>colorPicker.click();$('#paperDot').title='Change whiteboard color';const openBookWithColor=openBook;openBook=function(data){openBookWithColor(data);currentWhiteboard.color=currentWhiteboard.color||'#8eabb9';colorPicker.value=currentWhiteboard.color;applyBoardColor()};
+document.querySelector('[data-tool="voice"]')?.remove();const clearPageButton=document.querySelector('#clearBtn');if(clearPageButton){clearPageButton.textContent='🗑';clearPageButton.title='Clear page'}const penButton=document.querySelector('[data-tool="draw"]');let penColor='#52655d';const penPalette=document.createElement('div');penPalette.className='pen-palette';[['#52655d','Moss'],['#fd3c2f','Terracotta'],['#fc9e25','Amber'],['#2d3ac9','Blue'],['#b041fd','Violet'],['#fd63ce','Pink']].forEach(([color,label])=>{const swatch=document.createElement('button');swatch.type='button';swatch.className='pen-swatch';swatch.style.background=color;swatch.title=label;swatch.onclick=event=>{event.stopPropagation();penColor=color;setSketchMode('draw');penPalette.querySelectorAll('.pen-swatch').forEach(item=>item.classList.remove('selected'));swatch.classList.add('selected')};penPalette.appendChild(swatch)});penPalette.querySelector('.pen-swatch').classList.add('selected');penButton?.after(penPalette);cv.onpointermove=e=>{if(!drawing||e.buttons!==1)return;ctx.globalCompositeOperation=drawingMode==='erase'?'destination-out':'source-over';ctx.strokeStyle=drawingMode==='erase'?'rgba(0,0,0,1)':penColor;ctx.lineWidth=drawingMode==='erase'?18:2;ctx.lineCap='round';ctx.lineTo(e.offsetX,e.offsetY);ctx.stroke()};
+const heroBoard=document.createElement('div');heroBoard.className='hero-board';heroBoard.setAttribute('aria-hidden','true');heroBoard.innerHTML='<div class="hero-board-toolbar"><span></span><span></span><span></span><b>headspace</b></div><div class="hero-board-surface"><i class="hero-note hero-note-one">one idea<br>at a time</i><i class="hero-note hero-note-two">try this?</i><div class="hero-scribble"></div><div class="hero-line hero-line-one"></div><div class="hero-line hero-line-two"></div></div><div class="hero-board-leg"></div>';welcome.appendChild(heroBoard);
+const renderIdeaRefs=renderIdeas;renderIdeas=function(){renderIdeaRefs();const visible=ideas.filter(x=>filter==='all'||(filter==='saved'&&x.saved)||(filter==='done'&&x.done));ideasEl.querySelectorAll('.idea').forEach((element,index)=>{if(visible[index])element.dataset.ideaIndex=String(ideas.indexOf(visible[index]))})};renderIdeas();document.addEventListener('click',event=>{const button=event.target.closest('[data-act="save"],[data-image-act="save"],[data-free-act="save"]');if(!button)return;const card=button.closest('.idea');const index=Number(card?.dataset.ideaIndex);const data=Number.isInteger(index)?ideas[index]:null;if(!data)return;event.preventDefault();event.stopImmediatePropagation();data.saved=!data.saved;button.textContent=data.saved?'★':'☆';card.classList.toggle('saved',data.saved);save()},true);
+document.addEventListener('click',event=>{const button=event.target.closest('.image-actions [data-image-act="edit"]');if(!button)return;event.preventDefault();event.stopImmediatePropagation();const card=button.closest('.image-card');const caption=card?.querySelector('p');if(!card||!caption)return;const visible=ideas.filter(x=>filter==='all'||(filter==='saved'&&x.saved)||(filter==='done'&&x.done)).filter(x=>x.image);const data=visible[[...ideasEl.querySelectorAll('.image-card')].indexOf(card)];if(!data)return;const editor=document.createElement('textarea');editor.value=data.text||'Image note';editor.rows=2;editor.style.cssText='width:100%;border:0;border-bottom:1px solid #8d8064;background:transparent;outline:none;resize:vertical;font:14px Georgia;color:inherit;padding:8px 4px 2px';caption.replaceWith(editor);editor.focus();editor.select();const finish=()=>{data.text=editor.value.trim()||'Image note';save();renderIdeas()};editor.onblur=finish;editor.onkeydown=keyEvent=>{if(keyEvent.key==='Enter'&&!keyEvent.shiftKey){keyEvent.preventDefault();finish()}if(keyEvent.key==='Escape'){renderIdeas()}}},true);
